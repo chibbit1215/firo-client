@@ -408,6 +408,8 @@ export default {
             const a = this.addressBook[this.address];
             if (a && a.purpose === 'send' && a.label !== this.label) {
                 this.addToAddressBook();
+            }else if(a && a.purpose === 'rapSend' && a.label !== this.label) {
+
             }
         },
 
@@ -415,7 +417,8 @@ export default {
             const a = this.addressBook[this.address];
             if (a && a.purpose === 'send' && a.label !== this.label) {
                 this.addToAddressBook();
-            }
+            }else if (a && a.purpose === 'rapSend' && a.label !== this.label) {
+                this.addToAddressBook();
         }
     },
 
@@ -475,9 +478,26 @@ export default {
                 };
                 $store.commit('AddressBook/updateAddress', {...item, createdAt: Date.now()});
                 await $daemon.addAddressBookItem(item);
-            }
+            } 
         },
+        async addRAPToAddressBook() {
+            if (!isValidAddress(this.address, this.network) || !this.label) return;
 
+            if (this.addressBook[this.address]) {
+                const item = this.addressBook[this.address]
+                await $daemon.updateAddressBookItem(item, this.label);
+                $store.commit('AddressBook/updateAddress', {...item, label: this.label});
+                this.$refs.animatedTable.reload();
+            } else {
+                const item = {
+                    address: this.address,
+                    label: this.label,
+                    purpose: 'RAPsend'
+                };
+                $store.commit('AddressBook/updateAddress', {...item, createdAt: Date.now()});
+                await $daemon.addAddressBookItem(item);
+            } 
+        },
         navigateToAddressBookItem(addressBookItem) {
             this.address = addressBookItem.address;
             this.label = addressBookItem.label;
