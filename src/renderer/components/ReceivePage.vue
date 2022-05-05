@@ -225,6 +225,26 @@ export default {
                 .sort((a, b) => b.createdAt - a.createdAt)[0].address;
         },
 
+        async createNewRAPAddress() {
+            const address = await $daemon.getUnusedAddress();
+
+            await $daemon.addAddressBookItem({
+                address,
+                label: '',
+                purpose: 'rap-receive'
+            });
+            const addressBook = await $daemon.readAddressBook();
+            this.setAddressBook(addressBook);
+
+            this.label = '';
+            this.isDefaultAddress = false;
+            // We have to replicated the sorting of this.receiveAddresses here due to timing issues. $nextTick doesn't
+            // work either. :(
+            this.address = addressBook
+                .filter(a => a.purpose === 'rap-receive')
+                .sort((a, b) => b.createdAt - a.createdAt)[0].address;
+        },
+
         navigateToAddressBookItem(item) {
             this.isDefaultAddress = false;
             this.address = item.address;
